@@ -1,28 +1,13 @@
 <?php
-require_once '../config/database.php';
+require_once '../../config/database.php';
+require_once '../../models/Product.php';
 
-$name = $_POST['name'];
-$description = $_POST['description'];
-$price = $_POST['price'];
-$stock = $_POST['stock'];
-$categories = $_POST['categories'] ?? [];
-
-$pdo->beginTransaction();
-
-// Insert product
-$stmt = $pdo->prepare("INSERT INTO products (name, description, price, stock) VALUES (?, ?, ?, ?)");
-$stmt->execute([$name, $description, $price, $stock]);
-$productId = $pdo->lastInsertId();
-
-// Insert product-category relations
-if (!empty($categories)) {
-    $stmt = $pdo->prepare("INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)");
-    foreach ($categories as $categoryId) {
-        $stmt->execute([$productId, $categoryId]);
-    }
+$imagePath = '';
+if ($_FILES['image']['name']) {
+    $imagePath = 'uploads/' . basename($_FILES['image']['name']);
+    move_uploaded_file($_FILES['image']['tmp_name'], "../../$imagePath");
 }
 
-$pdo->commit();
-
-header("Location: index.php");
-exit;
+$productModel = new Product($pdo);
+$productModel->create($_POST['name'], $_POST['price'], $imagePath, $_POST['categories']);
+header('Location: index.php');

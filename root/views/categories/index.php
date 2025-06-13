@@ -1,17 +1,19 @@
 <?php
-require_once '../config/database.php';
-$stmt = $pdo->query("SELECT * FROM categories");
-$categories = $stmt->fetchAll();
+require_once '../../config/database.php';
+require_once '../../models/Category.php';
+
+$categoryModel = new Category($pdo);
+$categories = $categoryModel->getAll();
 ?>
 
-<h2>Categories</h2>
-<a href="create.php">Create New Category</a>
+<h2>All Categories</h2>
+<a href="create.php">Add New Category</a>
 <ul>
-    <?php foreach ($categories as $category): ?>
+    <?php foreach ($categories as $cat): ?>
         <li>
-            <?= htmlspecialchars($category['name']) ?> 
-            (<a href="edit.php?id=<?= $category['id'] ?>">Edit</a> |
-            <a href="delete.php?id=<?= $category['id'] ?>" onclick="return confirm('Are you sure?')">Delete</a>)
+            <?= htmlspecialchars($cat['name']) ?> 
+            [<a href="edit.php?id=<?= $cat['id'] ?>">Edit</a>]
+            [<a href="delete.php?id=<?= $cat['id'] ?>" onclick="return confirm('Are you sure?')">Delete</a>]
         </li>
     <?php endforeach; ?>
 </ul>

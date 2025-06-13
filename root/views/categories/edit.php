@@ -1,27 +1,22 @@
 <?php
-require_once '../config/database.php';
+require_once '../../config/database.php';
+require_once '../../models/Category.php';
 
-$id = $_GET['id'];
-$stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ?");
-$stmt->execute([$id]);
-$category = $stmt->fetch();
-
-$allCategories = $pdo->query("SELECT * FROM categories WHERE id != $id")->fetchAll();
+$categoryModel = new Category($pdo);
+$category = $categoryModel->find($_GET['id']);
+$categories = $categoryModel->getAllExcept($_GET['id']);
 ?>
 
 <form method="POST" action="update.php">
     <input type="hidden" name="id" value="<?= $category['id'] ?>">
-    
-    <input type="text" name="name" value="<?= htmlspecialchars($category['name']) ?>" required>
-    
+    <input type="text" name="name" value="<?= $category['name'] ?>" required>
     <select name="parent_id">
         <option value="">No Parent</option>
-        <?php foreach ($allCategories as $row): ?>
-            <option value="<?= $row['id'] ?>" <?= $category['parent_id'] == $row['id'] ? 'selected' : '' ?>>
-                <?= $row['name'] ?>
+        <?php foreach ($categories as $cat): ?>
+            <option value="<?= $cat['id'] ?>" <?= $cat['id'] == $category['parent_id'] ? 'selected' : '' ?>>
+                <?= $cat['name'] ?>
             </option>
         <?php endforeach; ?>
     </select>
-    
     <button type="submit">Update</button>
 </form>
