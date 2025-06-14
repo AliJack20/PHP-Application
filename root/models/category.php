@@ -18,6 +18,13 @@ class Category {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function getById($id) {
+    $stmt = $this->pdo->prepare("SELECT * FROM categories WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+
     // Create a new category
     public function create($name, $parentId = null) {
         $stmt = $this->pdo->prepare("INSERT INTO categories (name, parent_id) VALUES (?, ?)");

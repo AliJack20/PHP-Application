@@ -1,38 +1,26 @@
 <?php
-require_once '../../models/Product.php';
-include_once '../layout/header.php';
+require_once(__DIR__ . '/../../config/database.php');
+require_once(__DIR__ . '/../../models/Product.php');
 
-$search = $_GET['q'] ?? '';
-$productModel = new Product();
-$results = [];
+$productModel = new Product($pdo);
 
-if ($search) {
-    $results = $productModel->searchByName($search);
-}
+$query = $_GET['query'] ?? '';
+$searchResults = $productModel->search($query);
 ?>
 
-<h2>Search Results for "<?= htmlspecialchars($search) ?>"</h2>
+<h1>Search Results for: <?= htmlspecialchars($query) ?></h1>
 
-<form method="GET" action="search.php">
-    <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Search products...">
-    <button type="submit">Search</button>
-</form>
-
-<div class="product-grid">
-    <?php if (empty($results)): ?>
-        <p>No products found.</p>
-    <?php else: ?>
-        <?php foreach ($results as $product): ?>
-            <div class="product-card">
-                <h4><?= htmlspecialchars($product['name']) ?></h4>
-                <p>Price: $<?= htmlspecialchars($product['price']) ?></p>
-                <p>Categories: <?= implode(', ', json_decode($product['categories'], true)) ?></p>
-                <a href="product.php?id=<?= $product['id'] ?>">View Details</a>
-            </div>
+<?php if ($searchResults): ?>
+    <ul>
+        <?php foreach ($searchResults as $product): ?>
+            <li>
+                <strong><?= htmlspecialchars($product['name']) ?></strong><br>
+                <?= htmlspecialchars($product['description']) ?><br>
+                <em>Categories: <?= htmlspecialchars($product['categories']) ?></em>
+            </li>
         <?php endforeach; ?>
-    <?php endif; ?>
-</div>
+    </ul>
+<?php else: ?>
+    <p>No products found.</p>
+<?php endif; ?>
 
-<a href="index.php">← Back to Store</a>
-
-<?php include_once '../layout/footer.php'; ?>

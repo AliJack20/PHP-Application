@@ -1,37 +1,34 @@
 <?php
-require_once '../../models/Category.php';
-require_once '../../models/Product.php';
-include_once '../layout/header.php';
+require_once(__DIR__ . '/../../config/database.php');
+require_once(__DIR__ . '/../../models/Category.php');
+require_once(__DIR__ . '/../../models/Product.php');
+
+$categoryModel = new Category($pdo); // ✅ Pass $pdo here
+$productModel = new Product($pdo);   // ✅ Also required if using Product
 
 $categoryId = $_GET['id'] ?? null;
-$categoryModel = new Category();
-$productModel = new Product();
+if (!$categoryId) {
+    die("Category ID is missing.");
+}
 
+// Get category name (optional)
 $category = $categoryModel->getById($categoryId);
+
+// Get products in this category
 $products = $productModel->getByCategory($categoryId);
 ?>
 
-<?php if (!$category): ?>
-    <p>Category not found.</p>
+<h1>Products in <?= htmlspecialchars($category['name'] ?? 'Unknown') ?></h1>
+
+<?php if ($products): ?>
+    <ul>
+        <?php foreach ($products as $product): ?>
+            <li>
+                <strong><?= htmlspecialchars($product['name']) ?></strong><br>
+                <?= htmlspecialchars($product['description']) ?><br>
+            </li>
+        <?php endforeach; ?>
+    </ul>
 <?php else: ?>
-    <h2>Products in: <?= htmlspecialchars($category['name']) ?></h2>
-
-    <div class="product-grid">
-        <?php if (count($products) === 0): ?>
-            <p>No products in this category.</p>
-        <?php else: ?>
-            <?php foreach ($products as $product): ?>
-                <div class="product-card">
-                    <h4><?= htmlspecialchars($product['name']) ?></h4>
-                    <p>Price: $<?= htmlspecialchars($product['price']) ?></p>
-                    <p>Categories: <?= implode(', ', json_decode($product['categories'], true)) ?></p>
-                    <a href="product.php?id=<?= $product['id'] ?>">View Details</a>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
+    <p>No products found in this category.</p>
 <?php endif; ?>
-
-<a href="index.php">← Back to Store</a>
-
-<?php include_once '../layout/footer.php'; ?>

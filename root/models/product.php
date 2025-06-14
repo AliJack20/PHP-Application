@@ -21,21 +21,32 @@ class Product {
     return $stmt->fetchAll();
 }
 
-    public function getByCategory($categoryId) {
+
+    public function search($query) {
     $stmt = $this->pdo->prepare("
-        SELECT p.*, 
-            (SELECT JSON_ARRAYAGG(c.name) 
-             FROM categories c 
-             JOIN product_category pc ON pc.category_id = c.id 
-             WHERE pc.product_id = p.id) AS categories
+        SELECT p.*, GROUP_CONCAT(c.name) AS categories
         FROM products p
-        JOIN product_category pc ON pc.product_id = p.id
-        WHERE pc.category_id = ?
+        LEFT JOIN product_category pc ON p.id = pc.product_id
+        LEFT JOIN categories c ON pc.category_id = c.id
+        WHERE p.name LIKE :query OR p.description LIKE :query
         GROUP BY p.id
     ");
-    $stmt->execute([$categoryId]);
-    return $stmt->fetchAll();
+    $stmt->execute(['query' => '%' . $query . '%']);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+    public function getByCategory($categoryId) {
+    $stmt = $this->pdo->prepare("
+        SELECT p.*
+        FROM products p
+        JOIN product_category pc ON p.id = pc.product_id
+        WHERE pc.category_id = ?
+    ");
+    $stmt->execute([$categoryId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 
     public function searchByName($query) {
     $stmt = $this->pdo->prepare("
