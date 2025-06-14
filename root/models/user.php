@@ -1,4 +1,6 @@
 <?php
+require_once '../config/database.php';
+
 class User {
     private $pdo;
 
@@ -6,36 +8,17 @@ class User {
         $this->pdo = $pdo;
     }
 
-    public function getAll() {
-        $stmt = $this->pdo->query("SELECT * FROM users");
-        return $stmt->fetchAll();
+    public function register($username, $email, $password) {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([$username, $email, $hashedPassword]);
     }
 
-    public function getById($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
-
-    public function create($username, $email, $password) {
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-        $stmt->execute([$username, $email, $hashedPassword]);
-    }
-
-    public function update($id, $username, $email) {
-        $stmt = $this->pdo->prepare("UPDATE users SET username = ?, email = ? WHERE id = ?");
-        $stmt->execute([$username, $email, $id]);
-    }
-
-    public function delete($id) {
-        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-    }
-
-    public function verifyLogin($username, $password) {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = ?");
-        $stmt->execute([$username]);
+    public function login($email, $password) {
+        $sql = "SELECT * FROM users WHERE email = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$email]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {

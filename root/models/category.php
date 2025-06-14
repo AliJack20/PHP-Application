@@ -6,13 +6,8 @@ class Category {
         $this->pdo = $pdo;
     }
 
-    // Get all categories (optionally with their parent names)
     public function getAll() {
-        $stmt = $this->pdo->query("
-            SELECT c.id, c.name, c.parent_id, p.name AS parent_name
-            FROM categories c
-            LEFT JOIN categories p ON c.parent_id = p.id
-        ");
+        $stmt = $this->pdo->query("SELECT * FROM categories");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

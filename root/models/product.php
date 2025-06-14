@@ -8,17 +8,51 @@ class Product {
 
     // Get all products with their associated category names
     public function getAllWithCategories() {
-        $stmt = $this->pdo->query("
-            SELECT 
-                p.id, p.name, p.price, p.image,
-                JSON_ARRAYAGG(c.name) as categories
-            FROM products p
-            LEFT JOIN product_category pc ON p.id = pc.product_id
-            LEFT JOIN categories c ON pc.category_id = c.id
-            GROUP BY p.id
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    $sql = "
+        SELECT 
+            p.id, p.name, p.description, p.price, p.image, 
+            GROUP_CONCAT(c.name) AS categories
+        FROM products p
+        LEFT JOIN product_category pc ON p.id = pc.product_id
+        LEFT JOIN categories c ON pc.category_id = c.id
+        GROUP BY p.id
+    ";
+    $stmt = $this->pdo->query($sql);
+    return $stmt->fetchAll();
+}
+
+    public function getByCategory($categoryId) {
+    $stmt = $this->pdo->prepare("
+        SELECT p.*, 
+            (SELECT JSON_ARRAYAGG(c.name) 
+             FROM categories c 
+             JOIN product_category pc ON pc.category_id = c.id 
+             WHERE pc.product_id = p.id) AS categories
+        FROM products p
+        JOIN product_category pc ON pc.product_id = p.id
+        WHERE pc.category_id = ?
+        GROUP BY p.id
+    ");
+    $stmt->execute([$categoryId]);
+    return $stmt->fetchAll();
+}
+
+    public function searchByName($query) {
+    $stmt = $this->pdo->prepare("
+        SELECT p.*, 
+            (SELECT JSON_ARRAYAGG(c.name) 
+             FROM categories c 
+             JOIN product_category pc ON pc.category_id = c.id 
+             WHERE pc.product_id = p.id) AS categories
+        FROM products p
+        WHERE p.name LIKE ?
+    ");
+    $stmt->execute(['%' . $query . '%']);
+    return $stmt->fetchAll();
+}
+
+
+
 
     // Find a single product by ID
     public function find($id) {

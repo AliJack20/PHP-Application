@@ -13,7 +13,7 @@ $products = $productModel->getAllWithCategories();
     <tr>
         <td><?= $product['name'] ?></td>
         <td><?= $product['price'] ?></td>
-        <td><?= implode(', ', json_decode($product['categories'])) ?></td>
+        echo $product['categories']; 
         <td>
             <a href="edit.php?id=<?= $product['id'] ?>">Edit</a>
             <a href="delete.php?id=<?= $product['id'] ?>" onclick="return confirm('Are you sure?')">Delete</a>
